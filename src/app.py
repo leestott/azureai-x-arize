@@ -125,8 +125,30 @@ async def start():
         ]
     ).send()
     # Read environment variables from GitHub Codespaces
-    if os.getenv("CODESPACES", "") == "true":
-        Settings.llm = AzureAICompletionsModel(
+    # if os.getenv("CODESPACES", "") == "true":
+    #     Settings.llm = AzureAICompletionsModel(
+    #         endpoint=github_inference_url,
+    #         credential=github_token,
+    #         temperature=0.1,
+    #         max_tokens=1024,
+    #         streaming=True,
+    #         model_name=github_models_names.get("Cohere-command-r", "Cohere-command-r"),
+    #     )
+    #     # Temporary fix for the model name issue: https://github.com/run-llama/llama_index/issues/15169#issuecomment-2299571873
+    #     Settings.llm._model_name = github_models_names.get(
+    #         "Cohere-command-r-plus", "Cohere-command-r-plus"
+    #     )
+    #     Settings.embed_model = AzureAIEmbeddingsModel(
+    #         endpoint=github_inference_url,
+    #         credential=github_token,
+    #         model_name=github_models_names.get(
+    #             "Cohere-embed-v3-multilingual", "Cohere-embed-v3-multilingual"
+    #         ),
+    #     )
+    #     Settings.callback_manager = CallbackManager([cl.LlamaIndexCallbackHandler()])
+    #     Settings.context_window = 4096
+    # else:
+    Settings.llm = AzureAICompletionsModel(
             endpoint=github_inference_url,
             credential=github_token,
             temperature=0.1,
@@ -135,32 +157,18 @@ async def start():
             model_name=github_models_names.get("Cohere-command-r", "Cohere-command-r"),
         )
         # Temporary fix for the model name issue: https://github.com/run-llama/llama_index/issues/15169#issuecomment-2299571873
-        Settings.llm._model_name = github_models_names.get(
+    Settings.llm._model_name = github_models_names.get(
             "Cohere-command-r-plus", "Cohere-command-r-plus"
-        )
-        Settings.embed_model = AzureAIEmbeddingsModel(
+    )
+    Settings.embed_model = AzureAIEmbeddingsModel(
             endpoint=github_inference_url,
             credential=github_token,
             model_name=github_models_names.get(
                 "Cohere-embed-v3-multilingual", "Cohere-embed-v3-multilingual"
             ),
-        )
-        Settings.callback_manager = CallbackManager([cl.LlamaIndexCallbackHandler()])
-        Settings.context_window = 4096
-    else:
-        Settings.llm = AzureAICompletionsModel(
-            endpoint=os.getenv("AZURE_AI_COHERE_CMDR_ENDPOINT_URL"),
-            credential=os.getenv("AZURE_AI_COHERE_CMDR_ENDPOINT_KEY"),
-            temperature=0.1,
-            max_tokens=1024,
-            streaming=True,
-        )
-        Settings.embed_model = AzureAIEmbeddingsModel(
-            endpoint=os.getenv("AZURE_AI_COHERE_EMBED_ENDPOINT_URL"),
-            credential=os.getenv("AZURE_AI_COHERE_EMBED_ENDPOINT_KEY"),
-        )
-        Settings.callback_manager = CallbackManager([cl.LlamaIndexCallbackHandler()])
-        Settings.context_window = 4096
+    )
+    Settings.callback_manager = CallbackManager([cl.LlamaIndexCallbackHandler()])
+    Settings.context_window = 4096
 
     if not vector_index:
         documents = SimpleDirectoryReader("../data/paul_graham/").load_data(
@@ -270,24 +278,26 @@ async def setup_agent(settings):
 
     if settings.get("router_llm", None):
         router_llm_environ = settings["router_llm"]
-        if os.getenv("CODESPACES", "") == "true":
-            router_llm = AzureAICompletionsModel(
+        # if os.getenv("CODESPACES", "") == "true":
+        #     router_llm = AzureAICompletionsModel(
+        #         endpoint=github_inference_url,
+        #         credential=github_token,
+        #         temperature=0.1,
+        #         max_tokens=1024,
+        #         streaming=True,
+        #         model_name=github_models_names.get(router_llm_environ, ""),
+        #     )
+        #     router_llm._model_name = github_models_names.get(router_llm_environ, "")
+        # else:
+        router_llm = AzureAICompletionsModel(
                 endpoint=github_inference_url,
                 credential=github_token,
                 temperature=0.1,
                 max_tokens=1024,
                 streaming=True,
                 model_name=github_models_names.get(router_llm_environ, ""),
-            )
-            router_llm._model_name = github_models_names.get(router_llm_environ, "")
-        else:
-            router_llm = AzureAICompletionsModel(
-                endpoint=os.getenv(f"AZURE_AI_{router_llm_environ}_ENDPOINT_URL"),
-                credential=os.getenv(f"AZURE_AI_{router_llm_environ}_ENDPOINT_KEY"),
-                temperature=0.1,
-                max_tokens=1024,
-                streaming=True,
-            )
+        )
+        router_llm._model_name = github_models_names.get(router_llm_environ, "")
 
         query_engine = build_query_engine_with_router(router_llm)
         cl.user_session.set("query_engine", query_engine)
@@ -299,8 +309,18 @@ async def setup_agent(settings):
 
     if settings.get("llm", None):
         llm_environ = settings["llm"]
-        if os.getenv("CODESPACES", "") == "true":
-            llm = AzureAICompletionsModel(
+        # if os.getenv("CODESPACES", "") == "true":
+        #     llm = AzureAICompletionsModel(
+        #         endpoint=github_inference_url,
+        #         credential=github_token,
+        #         temperature=0.1,
+        #         max_tokens=1024,
+        #         streaming=True,
+        #         model_name=github_models_names.get(llm_environ, ""),
+        #     )
+        #     llm._model_name = github_models_names.get(llm_environ, "")
+        # else:
+        llm = AzureAICompletionsModel(
                 endpoint=github_inference_url,
                 credential=github_token,
                 temperature=0.1,
@@ -308,15 +328,7 @@ async def setup_agent(settings):
                 streaming=True,
                 model_name=github_models_names.get(llm_environ, ""),
             )
-            llm._model_name = github_models_names.get(llm_environ, "")
-        else:
-            llm = AzureAICompletionsModel(
-                endpoint=os.getenv(f"AZURE_AI_{llm_environ}_ENDPOINT_URL"),
-                credential=os.getenv(f"AZURE_AI_{llm_environ}_ENDPOINT_KEY"),
-                temperature=0.1,
-                max_tokens=1024,
-                streaming=True,
-            )
+        llm._model_name = github_models_names.get(llm_environ, "")
 
         Settings.llm = llm
 
